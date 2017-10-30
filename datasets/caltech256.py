@@ -5,6 +5,7 @@ from torchvision import transforms
 from torch.autograd import Variable
 from os.path import join
 from PIL import Image
+import torch.nn.functional as F
 from glob import glob
 import numpy as np
 from torch import optim
@@ -95,6 +96,7 @@ def train(epoch):
         optimizer.zero_grad()
         data, targets = Variable(data).cuda(), Variable(targets.long().squeeze()).cuda().detach()
         output = net(data)
+        output = F.log_softmax(scores)
         loss = ceLoss(output, targets)
         loss.backward()
         optimizer.step()

@@ -104,6 +104,7 @@ def train(epoch):
         # train the network
         optimizer.zero_grad()
         scores = net.forward(data)
+        scores = F.log_softmax(scores)
         loss = F.nll_loss(scores, targets)
 
         # compute the accuracy
