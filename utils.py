@@ -3,10 +3,6 @@ from torch import nn, optim
 from torch.autograd import Variable
 from torchvision import transforms
 
-from Model import Model
-from model.resnet import *
-from model.lenet import *
-
 def resizeLayer(layer, in_channels, out_channels, kernel_size=1, stride=1, padding=1, dilation=1):
     if dilation == 1 and hasattr(layer, 'dilation'):
         dilation = layer.dilation
@@ -293,7 +289,6 @@ def resetModel(model):
     return model
 '''
 
-import Layer
 def resizeToFit(layer, inp):
     if layer._layer.__class__.__name__ is 'Linear':
         in_channels = inp.view(inp.size(0), -1).size(1)
