@@ -26,8 +26,9 @@ class CONV4(nn.Module):
         
         self.classifier = nn.Sequential(
             nn.Dropout(0.2),
-            nn.Linear(128, 10),
-            nn.ReLU(True)
+            nn.Linear(128, 64),
+            nn.ReLU(True),
+            nn.Linear(64, 10)
         )
     
     def forward(self, inputs):
