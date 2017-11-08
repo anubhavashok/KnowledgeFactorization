@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.autograd import Variable
-
+from torch.utils.data.sampler import SubsetRandomSampler
 from torchvision import datasets, transforms
 from torchvision import models
 from utils import * 
@@ -55,6 +55,31 @@ test_loader = torch.utils.data.DataLoader(
                    ])),
     batch_size=args.batch_size, shuffle=True, **kwargs)
 
+
+def create_subset(subset):
+    global train_loader, test_loader
+    train = datasets.MNIST('data', train=True, download=True,
+                   transform=transforms.Compose([
+                       #transforms.Scale(227),
+                       transforms.ToTensor(),
+                       transforms.Normalize((0.1307,), (0.3081,))
+                   ]))
+    idxs = get_idxs_of_subset(train.train_labels, subset)
+    train_sampler = SubsetRandomSampler(idxs)
+    train_loader = torch.utils.data.DataLoader(train, batch_size=args.batch_size, shuffle=True, sampler=train_sampler, **kwargs)
+    # Create SubsetRandomSampler
+    test = datasets.MNIST('data', train=False, transform=transforms.Compose([
+                       #transforms.Scale(227),
+                       transforms.ToTensor(),
+                       transforms.Normalize((0.1307,), (0.3081,))
+                   ]))
+    idxs = get_idxs_of_subset(test.test_labels, subset)
+    test_sampler = SubsetRandomSampler(idxs)
+    test_loader = torch.utils.data.DataLoader(test, batch_size=args.batch_size, shuffle=True, sampler=test_sampler, **kwargs)
+
+def get_idxs_of_subset(labels, subset):
+    labels = labels.numpy().tolist()
+    return filter(lambda i: labels[i] in subset, range(len(labels)))
 
 optimizer = None
 def train(epoch):
