@@ -12,5 +12,5 @@ student = deepcopy(teacher)
 # Match logits at multiple places
 
 subset = [0, 1, 2, 3, 4]
-mnist.create_subset(subset)
+create_subset(subset, mnist)
 trainTeacherStudent(teacher, student, mnist, epochs=10)
