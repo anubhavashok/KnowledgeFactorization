@@ -74,7 +74,7 @@ def train(epoch):
         optimizer.step()
         if batch_idx % args.log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                epoch, batch_idx * len(data), len(train_loader.dataset),
+                epoch, batch_idx * len(data), len(train_loader)*args.batch_size,
                 100. * batch_idx / len(train_loader), loss.data[0]))
 
 def test():
@@ -96,10 +96,10 @@ def test():
 
     test_loss = test_loss
     test_loss /= len(test_loader) # loss function already averages over batch size
-    acc = float(correct) / len(test_loader.dataset)
+    acc = float(correct) / (len(test_loader)*args.batch_size)
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
-        test_loss, correct, len(test_loader.dataset),
-        100. * correct / len(test_loader.dataset)))
+        test_loss, correct, len(test_loader)*args.batch_size,
+        100. * correct / (len(test_loader)*args.batch_size)))
     return acc
 
 '''
