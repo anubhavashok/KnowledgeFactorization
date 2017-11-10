@@ -13,9 +13,9 @@ student = deepcopy(teacher).cuda()
 # Match logits at Dropout layer
 # Match logits at multiple places
 
-subset = [0, 1, 2, 3, 4]
+subset = [1]
 create_subset(subset, mnist)
 mnist.net = student.cuda()
 #for i in range(1, 10):
 #    mnist.train(i); mnist.test()
-trainTeacherStudent(teacher, student, mnist, epochs=10)
+trainTeacherStudent(teacher, student, mnist, epochs=10, lr=0.0005)

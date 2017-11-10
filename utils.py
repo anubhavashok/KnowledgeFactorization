@@ -361,7 +361,7 @@ from torch.utils.data.sampler import SubsetRandomSampler
 def create_subset(subset, dataset):
     idxs = get_idxs_of_subset(dataset.train_loader.dataset.train_labels, subset)
     train_sampler = SubsetRandomSampler(idxs)
-    dataset.train_loader = torch.utils.data.DataLoader(dataset.train_loader.dataset, batch_size=dataset.args.batch_size, shuffle=True, sampler=train_sampler, **dataset.kwargs)
+    dataset.train_loader = torch.utils.data.DataLoader(dataset.train_loader.dataset, batch_size=dataset.args.batch_size, sampler=train_sampler, **dataset.kwargs)
     idxs = get_idxs_of_subset(dataset.test_loader.dataset.test_labels, subset)
     test_sampler = SubsetRandomSampler(idxs)
-    dataset.test_loader = torch.utils.data.DataLoader(dataset.test_loader.dataset, batch_size=dataset.args.batch_size, shuffle=True, sampler=test_sampler, **dataset.kwargs)
+    dataset.test_loader = torch.utils.data.DataLoader(dataset.test_loader.dataset, batch_size=dataset.args.batch_size, sampler=test_sampler, **dataset.kwargs)
