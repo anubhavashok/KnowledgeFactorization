@@ -3,6 +3,8 @@ from datasets import mnist
 from copy import deepcopy
 import torch
 
+torch.set_num_threads(4)
+
 teacher = torch.load('models/conv4.net').cuda()
 # Currently using unmodified architecture (10 outputs)
 student = deepcopy(teacher).cuda()
