@@ -134,6 +134,41 @@ def trainTeacherStudent(teacher, student, dataset, epochs=5, lr=0.0005):
     print('Time elapsed: {}'.format(time.time()-startTime))
     return acc 
 
+def trainTeacherStudentIntermediate(teacher, student, dataset, epochs=5, lr=0.0005):
+    startTime = time.time()
+    student = student.cuda()
+    teacher = teacher.cuda()
+    # If there is a log softmax somewhere, delete it in both teacher and student
+    removeLayers(teacher, type='LogSoftmax')
+    removeLayers(teacher, type='Softmax')
+    removeLayers(student, type='LogSoftmax')
+    removeLayers(student, type='Softmax')
+    MSEloss = nn.MSELoss().cuda()
+    optimizer = optim.SGD(student.parameters(), lr=lr, momentum=0.9, nesterov=True, weight_decay=5e-4)
+    student.train()
+    # Match at a different layer
+    # 1. Remove higher layers and then match outputs of lower layers
+    for i in range(1, epochs+1):
+        for b_idx, (data, targets) in enumerate(dataset.train_loader):
+            data = data.cuda()
+            data = Variable(data)
+            optimizer.zero_grad()
+            studentOutput = student.features(data)
+            teacherOutput = teacher.features(data).detach()
+            loss = MSEloss(studentOutput, teacherOutput)
+            loss.backward()
+            optimizer.step()
+        student.add_module('LogSoftmax', nn.LogSoftmax())
+        dataset.net = student
+        removeLayers(student, type='LogSoftmax')
+        print(dataset.test())
+        print('Train Epoch: {} \tLoss: {:.6f}'.format(i, loss.data[0]))
+    student.add_module('LogSoftmax', nn.LogSoftmax())
+    dataset.net = student
+    acc = dataset.test()
+    print('Time elapsed: {}'.format(time.time()-startTime))
+    return acc
+
 import torch.nn.functional as F
 def trainTeacherStudentRand(teacher, student, dataset, epochs=50, lr=0.0001):
     startTime = time.time()
