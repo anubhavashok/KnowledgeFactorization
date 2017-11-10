@@ -354,7 +354,8 @@ def layersFromModule(m):
 
 
 def get_idxs_of_subset(labels, subset):
-    labels = labels.numpy().tolist()
+    if not isinstance(labels, list):
+        labels = labels.numpy().tolist()
     return filter(lambda i: labels[i] in subset, range(len(labels)))
 
 from torch.utils.data.sampler import SubsetRandomSampler
