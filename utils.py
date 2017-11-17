@@ -3,6 +3,7 @@ from torch import nn, optim
 from torch.autograd import Variable
 from torchvision import transforms
 
+
 def resizeLayer(layer, in_channels, out_channels, kernel_size=1, stride=1, padding=1, dilation=1):
     if dilation == 1 and hasattr(layer, 'dilation'):
         dilation = layer.dilation
@@ -42,6 +43,7 @@ def determine_fc_size(inp, model):
     output = model.features(inp)
     return output.view(-1).size()[0]
 
+
 def output_results(resultsFile, accsPerModel, paramsPerModel, rewardsPerModel):
     resultsString = ''
     s = '-- Models ranked by accuracy --'
@@ -70,6 +72,7 @@ def output_results(resultsFile, accsPerModel, paramsPerModel, rewardsPerModel):
         i += 1
     if resultsFile:
         resultsFile.write(resultsString)
+
 
 def numParams(model):
         return sum([len(w.view(-1)) for w in model.parameters()])
@@ -361,7 +364,9 @@ from torch.utils.data.sampler import SubsetRandomSampler
 def create_subset(subset, dataset):
     idxs = get_idxs_of_subset(dataset.train_loader.dataset.train_labels, subset)
     train_sampler = SubsetRandomSampler(idxs)
-    dataset.train_loader = torch.utils.data.DataLoader(dataset.train_loader.dataset, batch_size=dataset.args.batch_size, shuffle=True, sampler=train_sampler, **dataset.kwargs)
+    dataset.train_loader = torch.utils.data.DataLoader(dataset.train_loader.dataset, batch_size=dataset.args.batch_size,
+                                                       shuffle=False, sampler=train_sampler, **dataset.kwargs)
     idxs = get_idxs_of_subset(dataset.test_loader.dataset.test_labels, subset)
     test_sampler = SubsetRandomSampler(idxs)
-    dataset.test_loader = torch.utils.data.DataLoader(dataset.test_loader.dataset, batch_size=dataset.args.batch_size, shuffle=True, sampler=test_sampler, **dataset.kwargs)
+    dataset.test_loader = torch.utils.data.DataLoader(dataset.test_loader.dataset, batch_size=dataset.args.batch_size,
+                                                      shuffle=False, sampler=test_sampler, **dataset.kwargs)

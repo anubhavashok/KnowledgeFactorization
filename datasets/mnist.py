@@ -11,6 +11,7 @@ from utils import *
 
 # Training settings
 parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
+
 parser.add_argument('--model', type=str, default='./protos/91.net', metavar='N',
                     help='input model')
 parser.add_argument('--batch-size', type=int, default=64, metavar='N',
@@ -31,14 +32,15 @@ parser.add_argument('--log-interval', type=int, default=10, metavar='N',
                     help='how many batches to wait before logging training status')
 args = parser.parse_args()
 args.cuda = not args.no_cuda and torch.cuda.is_available()
-
 torch.manual_seed(args.seed)
+
 if args.cuda:
     print('Using cuda')
     torch.cuda.manual_seed(args.seed)
 
 
 kwargs = {'num_workers': 8, 'pin_memory': True} if args.cuda else {}
+
 train_loader = torch.utils.data.DataLoader(
     datasets.MNIST('data', train=True, download=True,
                    transform=transforms.Compose([
@@ -47,6 +49,8 @@ train_loader = torch.utils.data.DataLoader(
                        transforms.Normalize((0.1307,), (0.3081,))
                    ])),
     batch_size=args.batch_size, shuffle=True, **kwargs)
+
+
 test_loader = torch.utils.data.DataLoader(
     datasets.MNIST('data', train=False, transform=transforms.Compose([
                        #transforms.Scale(227),
@@ -56,6 +60,8 @@ test_loader = torch.utils.data.DataLoader(
     batch_size=args.batch_size, shuffle=True, **kwargs)
 
 optimizer = None
+
+
 def train(epoch):
     global optimizer
     if epoch == 1:
@@ -67,8 +73,8 @@ def train(epoch):
             data, target = data.cuda(), target.cuda()
         data, target = Variable(data), Variable(target)
         optimizer.zero_grad()
-        output = F.log_softmax(net(data))
-        #output = net(data)
+        output = net.forward(data)
+
         loss = F.nll_loss(output, target)
         loss.backward()
         optimizer.step()
@@ -77,10 +83,13 @@ def train(epoch):
                 epoch, batch_idx * len(data), len(train_loader)*args.batch_size,
                 100. * batch_idx / len(train_loader), loss.data[0]))
 
+
 def test():
-    removeLayers(net, 'LogSoftmax')
-    removeLayers(net, 'Softmax')
-    net.classifier.add_module('softmax', nn.LogSoftmax())
+
+    # removeLayers(net, 'LogSoftmax')
+    # removeLayers(net, 'Softmax')
+    # net.classifier.add_module('softmax', nn.LogSoftmax())
+
     net.eval()
     test_loss = 0
     correct = 0
@@ -88,24 +97,16 @@ def test():
         if args.cuda:
             data, target = data.cuda(), target.cuda()
         data, target = Variable(data, volatile=True), Variable(target)
-        #output = F.log_softmax(model(data))
-        output = net(data)
+        output = net.forward(data)
         test_loss += F.nll_loss(output, target).data[0]
-        pred = output.data.max(1)[1] # get the index of the max log-probability
+        pred = output.data.max(1)[1]    # get the index of the max log-probability
         correct += pred.eq(target.data).cpu().sum()
 
     test_loss = test_loss
-    test_loss /= len(test_loader) # loss function already averages over batch size
+    test_loss /= len(test_loader)   # loss function already averages over batch size
     acc = float(correct) / (len(test_loader)*args.batch_size)
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(test_loader)*args.batch_size,
         100. * correct / (len(test_loader)*args.batch_size)))
     return acc
 
-'''
-if __name__ is '__main__':
-    for epoch in range(1, args.epochs + 1):
-        train(epoch)
-        test(epoch)
-        #torch.save(net, 'vgg19_mnist.pth')
-'''
