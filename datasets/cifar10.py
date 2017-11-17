@@ -43,14 +43,16 @@ train_loader = torch.utils.data.DataLoader(
                        transforms.RandomCrop(32, padding=4),
                        transforms.RandomHorizontalFlip(),
                        transforms.ToTensor(),
-                       transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+                       transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+                       #transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
                        #transforms.Normalize((0.491399689874, 0.482158419622, 0.446530924224), (0.247032237587, 0.243485133253, 0.261587846975))
                    ])),
     batch_size=args.batch_size, shuffle=True, **kwargs)
 test_loader = torch.utils.data.DataLoader(
     datasets.CIFAR10('./', train=False, transform=transforms.Compose([
                        transforms.ToTensor(),
-                       transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+                       transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+                       #transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
                        #transforms.Normalize((0.491399689874, 0.482158419622, 0.446530924224), (0.247032237587, 0.243485133253, 0.261587846975))
                    ])),
     batch_size=args.batch_size, shuffle=False, **kwargs)
@@ -117,11 +119,11 @@ def train(epoch):
 
         if b_idx % args.log_schedule == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                epoch, (b_idx+1) * len(data), len(train_loader.dataset),
-                100. * (b_idx+1)*len(data) / len(train_loader.dataset), loss.data[0]))
+                epoch, (b_idx+1) * len(data), len(train_loader)*args.batch_size,
+                100. * (b_idx+1)*len(data) / (len(train_loader)*args.batch_size), loss.data[0]))
 
     # now that the epoch is completed plot the accuracy
-    train_accuracy = correct / float(len(train_loader.dataset))
+    train_accuracy = correct / float(len(train_loader)*args.batch_size)
     print("training accuracy ({:.2f}%)".format(100*train_accuracy))
     return (train_accuracy*100.0)
 
@@ -140,8 +142,8 @@ def test():
         pred = score.data.max(1)[1] # got the indices of the maximum, match them
         correct += pred.eq(target.data).cpu().sum()
 
-    print("predicted {} out of {}".format(correct, len(test_loader.dataset)))
-    val_accuracy = correct / float(len(test_loader.dataset)) * 100.0
+    print("predicted {} out of {}".format(correct, len(test_loader)*args.batch_size))
+    val_accuracy = correct / float(len(test_loader) * args.batch_size) * 100.0
     print("accuracy = {:.2f}".format(val_accuracy))
 
     # now save the model if it has better accuracy than the best model seen so forward
