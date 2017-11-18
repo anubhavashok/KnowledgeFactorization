@@ -1,3 +1,4 @@
+import sys
 import argparse
 import torch
 import torch.nn as nn
@@ -7,10 +8,13 @@ from torch.autograd import Variable
 from torch.utils.data.sampler import SubsetRandomSampler
 from torchvision import datasets, transforms
 from torchvision import models
-from utils import * 
+sys.path.append('..')
+from utils import *
 
+batch_size = 64
 # Training settings
-parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
+'''
+parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=str, default='./protos/91.net', metavar='N',
                     help='input model')
 parser.add_argument('--batch-size', type=int, default=64, metavar='N',
@@ -39,6 +43,7 @@ if args.cuda:
 
 
 kwargs = {'num_workers': 8, 'pin_memory': True} if args.cuda else {}
+'''
 train_loader = torch.utils.data.DataLoader(
     datasets.MNIST('data', train=True, download=True,
                    transform=transforms.Compose([
@@ -46,25 +51,25 @@ train_loader = torch.utils.data.DataLoader(
                        transforms.ToTensor(),
                        transforms.Normalize((0.1307,), (0.3081,))
                    ])),
-    batch_size=args.batch_size, shuffle=True, **kwargs)
+    batch_size=batch_size, shuffle=True)#, **kwargs)
 test_loader = torch.utils.data.DataLoader(
     datasets.MNIST('data', train=False, transform=transforms.Compose([
                        #transforms.Scale(227),
                        transforms.ToTensor(),
                        transforms.Normalize((0.1307,), (0.3081,))
                    ])),
-    batch_size=args.batch_size, shuffle=True, **kwargs)
+    batch_size=64, shuffle=True)#, **kwargs)
 
 optimizer = None
 def train(epoch):
     global optimizer
     if epoch == 1:
         #optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.momentum)
-        optimizer = optim.Adam(net.parameters(), lr=args.lr)
+        optimizer = optim.Adam(net.parameters(), lr=0.01)
     net.train()
     for batch_idx, (data, target) in enumerate(train_loader):
-        if args.cuda:
-            data, target = data.cuda(), target.cuda()
+        #if args.cuda:
+        #    data, target = data.cuda(), target.cuda()
         data, target = Variable(data), Variable(target)
         optimizer.zero_grad()
         output = F.log_softmax(net(data))
@@ -72,9 +77,9 @@ def train(epoch):
         loss = F.nll_loss(output, target)
         loss.backward()
         optimizer.step()
-        if batch_idx % args.log_interval == 0:
+        if batch_idx % 1 == 0:#args.log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                epoch, batch_idx * len(data), len(train_loader)*args.batch_size,
+                epoch, batch_idx * len(data), len(train_loader)*batch_size,#args.batch_size,
                 100. * batch_idx / len(train_loader), loss.data[0]))
 
 def test():
@@ -85,8 +90,8 @@ def test():
     test_loss = 0
     correct = 0
     for data, target in test_loader:
-        if args.cuda:
-            data, target = data.cuda(), target.cuda()
+        #if args.cuda:
+        #    data, target = data.cuda(), target.cuda()
         data, target = Variable(data, volatile=True), Variable(target)
         #output = F.log_softmax(model(data))
         output = net(data)
@@ -96,10 +101,10 @@ def test():
 
     test_loss = test_loss
     test_loss /= len(test_loader) # loss function already averages over batch size
-    acc = float(correct) / (len(test_loader)*args.batch_size)
+    acc = float(correct) / (len(test_loader)*batch_size)#args.batch_size)
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
-        test_loss, correct, len(test_loader)*args.batch_size,
-        100. * correct / (len(test_loader)*args.batch_size)))
+        test_loss, correct, len(test_loader)*batch_size,#args.batch_size,
+        100. * correct / (len(test_loader)*batch_size)))#args.batch_size)))
     return acc
 
 '''
