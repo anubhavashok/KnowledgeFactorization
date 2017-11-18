@@ -50,6 +50,16 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
             bn.bias.data = torch.from_numpy(new_b)
             bn.running_mean = torch.from_numpy(new_m)
             bn.running_var = torch.from_numpy(new_v)
+
+	def is_bias(x):
+		print x
+		if x is None:
+			return False
+		else:
+			return True
+
+	#print conv.bias
+
 	new_conv = \
 		torch.nn.Conv2d(in_channels = conv.in_channels, \
 			out_channels = conv.out_channels - 1,
@@ -58,23 +68,26 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 			padding = conv.padding,
 			dilation = conv.dilation,
 			groups = conv.groups,
-			bias = conv.bias)
+			bias = is_bias(conv.bias))
 
 	old_weights = conv.weight.data.cpu().numpy()
 	new_weights = new_conv.weight.data.cpu().numpy()
 
 	new_weights[: filter_index, :, :, :] = old_weights[: filter_index, :, :, :]
 	new_weights[filter_index : , :, :, :] = old_weights[filter_index + 1 :, :, :, :]
-	new_conv.weight.data = torch.from_numpy(new_weights).cuda()
+	new_conv.weight.data = torch.from_numpy(new_weights)#.cuda()
 
 	bias_numpy = conv.bias.data.cpu().numpy()
 
 	bias = np.zeros(shape = (bias_numpy.shape[0] - 1), dtype = np.float32)
 	bias[:filter_index] = bias_numpy[:filter_index]
 	bias[filter_index : ] = bias_numpy[filter_index + 1 :]
-	new_conv.bias.data = torch.from_numpy(bias).cuda()
+	new_conv.bias.data = torch.from_numpy(bias)#.cuda()
 
 	if not next_conv is None:
+		#print conv.bias
+		#print model
+
 		next_new_conv = \
 			torch.nn.Conv2d(in_channels = next_conv.in_channels - 1,\
 				out_channels =  next_conv.out_channels, \
@@ -83,14 +96,14 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 				padding = next_conv.padding,
 				dilation = next_conv.dilation,
 				groups = next_conv.groups,
-				bias = next_conv.bias)
+				bias = is_bias(conv.bias))
 
 		old_weights = next_conv.weight.data.cpu().numpy()
 		new_weights = next_new_conv.weight.data.cpu().numpy()
 
 		new_weights[:, : filter_index, :, :] = old_weights[:, : filter_index, :, :]
 		new_weights[:, filter_index : , :, :] = old_weights[:, filter_index + 1 :, :, :]
-		next_new_conv.weight.data = torch.from_numpy(new_weights).cuda()
+		next_new_conv.weight.data = torch.from_numpy(new_weights)#.cuda()
 
 		next_new_conv.bias.data = next_conv.bias.data
 
@@ -144,7 +157,7 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 	 	
 	 	new_linear_layer.bias.data = old_linear_layer.bias.data
 
-	 	new_linear_layer.weight.data = torch.from_numpy(new_weights).cuda()
+	 	new_linear_layer.weight.data = torch.from_numpy(new_weights)#.cuda()
 
 		classifier = torch.nn.Sequential(
 			*(replace_layers(model.classifier, i, [layer_index], \
@@ -154,7 +167,7 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 		del next_conv
 		del conv
 		model.classifier = classifier
-
+	print model
 	return model
 
 if __name__ == '__main__':
