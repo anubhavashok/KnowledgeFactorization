@@ -19,12 +19,6 @@ class VGG(nn.Module):
         self.classifier = nn.Linear(1024, 10)
         # self.num_channels = 10 #num_channels
 
-    def forward(self, x):
-        x = self.features(x)
-        x = x.view(x.size(0), -1)
-        x = self.classifier(x)
-        return x
-
     def _make_layers(self, cfg):
         layers = []
         in_channels = 3 #self.num_channels
@@ -38,6 +32,19 @@ class VGG(nn.Module):
                 in_channels = x
         layers += [nn.AvgPool2d(kernel_size=1, stride=1)]
         return nn.Sequential(*layers)
+
+
+    def extract_features(self, inputs):
+        out = self.features(inputs)
+        out = out.view(out.size(0), -1)
+        return out
+
+    def forward(self, inputs):
+        out = self.extract_features(inputs)
+        out = self.classifier(out)
+        return out
+
+
 
 # net = VGG('VGG11')
 # x = torch.randn(2,3,32,32)

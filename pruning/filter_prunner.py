@@ -106,6 +106,7 @@ class FilterPrunner:
 
 
 kwargs = {'num_workers': 1, 'pin_memory': True}
+
 class PrunningFineTuner_VGG16:
 	def __init__(self, train_path, test_path, model):
 		self.train_data_loader = torch.utils.data.DataLoader(

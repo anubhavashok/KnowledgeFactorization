@@ -1,4 +1,6 @@
 from torch import nn
+
+
 class CONV3(nn.Module):
     def __init__(self):
         super(CONV3, self).__init__()
@@ -26,9 +28,15 @@ class CONV3(nn.Module):
             nn.ReLU(True),
             nn.Linear(64, 10)
         )
-    
-    def forward(self, inputs):
+
+
+    def extract_features(self, inputs):
         out = self.features(inputs)
         out = out.view(-1, 128)
+        return out
+
+    def forward(self, inputs):
+        out = self.extract_features(inputs)
         out = self.classifier(out)
         return out
+
