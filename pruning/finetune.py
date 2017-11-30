@@ -17,7 +17,8 @@ import time
 
 
 def numParams(model):
-        return sum([len(w.view(-1)) for w in model.parameters()])
+	return sum([len(w.view(-1)) for w in model.parameters()])
+
 
 class FilterPrunner:
 	def __init__(self, model):
@@ -39,12 +40,12 @@ class FilterPrunner:
 
 		activation_index = 0
 		for layer, (name, module) in enumerate(self.model.features._modules.items()):
-		    x = module(x)
-		    if isinstance(module, torch.nn.modules.conv.Conv2d):
-		    	x.register_hook(self.compute_rank)
-		        self.activations.append(x)
-		        self.activation_to_layer[activation_index] = layer
-		        activation_index += 1
+			x = module(x)
+			if isinstance(module, torch.nn.modules.conv.Conv2d):
+				x.register_hook(self.compute_rank)
+				self.activations.append(x)
+				self.activation_to_layer[activation_index] = layer
+				activation_index += 1
 
 		return self.model.classifier(x.view(x.size(0), -1))
 
@@ -103,6 +104,7 @@ class FilterPrunner:
 
 		return filters_to_prune				
 
+
 kwargs = {'num_workers': 1, 'pin_memory': True}
 class PrunningFineTuner_VGG16:
 	def __init__(self, train_path, test_path, model):
@@ -136,12 +138,12 @@ class PrunningFineTuner_VGG16:
 			batch = batch.cuda()
 			output = model(Variable(batch))
 			pred = output.data.max(1)[1]
-	 		correct += pred.cpu().eq(label).sum()
-	 		total += label.size(0)
+			correct += pred.cpu().eq(label).sum()
+			total += label.size(0)
 	 	
-	 	print "Accuracy :", float(correct) / total
-	 	
-	 	self.model.train()
+		print "Accuracy :", float(correct) / total
+
+		self.model.train()
 
 	def train(self, optimizer = None, epoches = 10):
 		if optimizer is None:
@@ -221,38 +223,39 @@ class PrunningFineTuner_VGG16:
 				model = prune_vgg16_conv_layer(model, layer_index, filter_index)
 
 			self.model = model.cuda()
-                        print('Number of parameters: %d' % (numParams(model)))
-                        print(self.model)
+			print('Number of parameters: %d' % (numParams(model)))
+			print(self.model)
 
 			message = str(100*float(self.total_num_filters()) / number_of_filters) + "%"
 			print "Filters prunned", str(message)
 			self.test()
 			print "Fine tuning to recover from prunning iteration."
 			optimizer = optim.Adam(self.model.parameters(), lr=0.001)
-			self.train(optimizer, epoches = 10)
+			self.train(optimizer, epoches=10)
 
 
 		print "Finished. Going to fine tune the model a bit more"
-		self.train(optimizer, epoches = 15)
+		self.train(optimizer, epoches=15)
 		torch.save(model, "model_prunned")
 
+
 def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--train", dest="train", action="store_true")
-    parser.add_argument("--prune", dest="prune", action="store_true")
-    parser.add_argument("--train_path", type = str, default = "train")
-    parser.add_argument("--test_path", type = str, default = "test")
-    parser.set_defaults(train=False)
-    parser.set_defaults(prune=False)
-    args = parser.parse_args()
-    return args
+	parser = argparse.ArgumentParser()
+	parser.add_argument("--train", dest="train", action="store_true")
+	parser.add_argument("--prune", dest="prune", action="store_true")
+	parser.add_argument("--train_path", type = str, default = "train")
+	parser.add_argument("--test_path", type = str, default = "test")
+	parser.set_defaults(train=False)
+	parser.set_defaults(prune=False)
+	args = parser.parse_args()
+	return args
 
 if __name__ == '__main__':
 	args = get_args()
 
 	if args.train:
 		model = ModifiedVGG16Model().cuda()
-                torch.save(model, 'model1')
+		torch.save(model, 'model1')
 	elif args.prune:
 		model = torch.load("model1").cuda()
 

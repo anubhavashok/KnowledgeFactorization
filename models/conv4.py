@@ -59,6 +59,12 @@ class FinetuneModel(nn.Module):
                 nn.Linear(64, num_outputs)
             )
             # self.name = arch
+        if arch == 'vgg19':
+            print 'Here vgg 19'
+            self.features = original_model.features
+            self.classifier = nn.Sequential(
+                            nn.Linear(1024, num_outputs)
+                            )
 
         if freeze:
             # Freeze those weights
@@ -72,6 +78,8 @@ class FinetuneModel(nn.Module):
         f = self.features(x)
         if self.arch == 'conv4':
             f = f.view(-1, 128)
+        if self.arch == 'vgg19':
+            f = f.view(f.size(0), -1)
         y = self.classifier(f)
         return y
 

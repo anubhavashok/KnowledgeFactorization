@@ -4,6 +4,7 @@ import argparse
 from utils import *
 # from datasets import mnist
 from models.conv4 import CONV4, FinetuneModel
+from models.vgg import VGG
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.autograd import Variable
@@ -33,6 +34,9 @@ parser.add_argument('--test_interval', type=int, default=1000, metavar='N', help
 args = parser.parse_args()
 args.cuda = not args.no_cuda and torch.cuda.is_available()
 
+print args
+
+
 optimizer = None
 f = None
 my_dataset = None
@@ -44,10 +48,13 @@ def train(net, epoch):
 
         # define your optimizer
         if args.dataset == 'mnist':
-            optimizer = optim.Adam(net.parameters(), lr=args.lr)
+            # optimizer = optim.Adam(net.parameters(), lr=args.lr)
+            optimizer = optim.SGD(filter(lambda p: p.requires_grad, net.parameters()), lr=0.001)
         elif args.dataset == 'cifar10':
-            print 'Here'
-            optimizer = optim.Adam(net.parameters(), lr=0.005, weight_decay=1e-4)
+            print 'Here cifar10'
+            # optimizer = optim.Adam( filter(lambda p: p.requires_grad, net.parameters()), lr=0.005, weight_decay=1e-4)
+            optimizer = optim.SGD(filter(lambda p: p.requires_grad, net.parameters()), lr=0.005)
+
         f = open(args.log_path, 'w')
 
     avg_loss = 0
@@ -69,7 +76,7 @@ def train(net, epoch):
             avg_loss /= args.log_interval
             log_string = 'Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}\n'.format(
                 epoch, batch_idx * len(data), len(my_dataset.train_loader) * args.batch_size,
-                100. * batch_idx / len(my_dataset.train_loader), avg_loss)
+                100. * batch_idx / (len(my_dataset.train_loader) * args.batch_size), avg_loss)
 
             print(log_string)
             f.write(log_string)
@@ -136,13 +143,15 @@ def get_dataset():
                                  transforms.RandomCrop(32, padding=4),
                                  transforms.RandomHorizontalFlip(),
                                  transforms.ToTensor(),
-                                 transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+                                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+                                 # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
                              ])),
             batch_size=args.batch_size, shuffle=True, **kwargs)
         my_dataset.test_loader = torch.utils.data.DataLoader(
             datasets.CIFAR10('./', train=False, transform=transforms.Compose([
                 transforms.ToTensor(),
-                transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+                # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
             ])),
             batch_size=args.batch_size, shuffle=False, **kwargs)
     my_dataset.args = args
@@ -163,14 +172,17 @@ def main():
 
     # define your model
     if args.scratch:
-        model = CONV4(args.num_outputs, 3)
+        model = CONV4(args.num_outputs, 1)
+        # model = VGG('VGG19')
+        resetModel(model)
     else:
-        model = torch.load(args.pretrained)
-        # model = FinetuneModel(model, 'conv4', args.num_outputs, True)
+        model = torch.load(args.pretrained, map_location=lambda storage, loc: storage)
+        removeLayers(model, 'LogSoftmax')
+        model = FinetuneModel(model, 'conv4', args.num_outputs, True)
 
     # Only inference
     if args.inference:
-        model = torch.load(args.pretrained)
+        model = torch.load(args.pretrained, map_location=lambda storage, loc: storage)
         final_accuracy = test(model)
     else:
         print model

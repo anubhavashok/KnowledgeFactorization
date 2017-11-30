@@ -104,6 +104,8 @@ def removeLayers(m, type):
 
 import time
 import itertools
+
+
 def trainTeacherStudent(teacher, student, dataset, epochs=5, lr=0.0005):
     startTime = time.time()
     student = student.cuda()
@@ -136,6 +138,7 @@ def trainTeacherStudent(teacher, student, dataset, epochs=5, lr=0.0005):
     acc = dataset.test()
     print('Time elapsed: {}'.format(time.time()-startTime))
     return acc 
+
 
 def trainTeacherStudentIntermediate(teacher, student, dataset, epochs=5, lr=0.0005):
     startTime = time.time()
@@ -172,6 +175,7 @@ def trainTeacherStudentIntermediate(teacher, student, dataset, epochs=5, lr=0.00
     print('Time elapsed: {}'.format(time.time()-startTime))
     return acc
 
+
 import torch.nn.functional as F
 def trainTeacherStudentRand(teacher, student, dataset, epochs=50, lr=0.0001):
     startTime = time.time()
@@ -205,6 +209,7 @@ def trainTeacherStudentRand(teacher, student, dataset, epochs=50, lr=0.0001):
     acc = dataset.test()
     print('Time elapsed: {}'.format(time.time()-startTime))
     return acc
+
 
 def trainTeacherStudentNew(teacher, student, dataset, epochs=5, lr=0.0005, T=3.0, lambd=0.3):
     startTime = time.time()
