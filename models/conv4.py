@@ -44,5 +44,3 @@ class CONV4(nn.Module):
         out = self.extract_features(inputs)
         out = self.classifier(out)
         return out
-
-

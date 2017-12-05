@@ -2,7 +2,7 @@ from torch import nn
 
 
 class FinetuneModel(nn.Module):
-    def __init__(self, original_model, arch, num_outputs, freeze=True):
+    def __init__(self, original_model, arch, num_outputs, freeze_features=True):
         super(FinetuneModel, self).__init__()
 
         self.arch = arch
@@ -34,7 +34,7 @@ class FinetuneModel(nn.Module):
                 nn.Linear(4096, num_outputs)
             )
 
-        if freeze:
+        if freeze_features:
             # Freeze those weights
             for p in self.features.parameters():
                 p.requires_grad = False

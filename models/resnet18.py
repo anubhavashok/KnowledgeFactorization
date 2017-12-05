@@ -132,16 +132,21 @@ class ResNet(nn.Module):
             layers.append(block(self.in_planes, planes))
         return nn.Sequential(*layers)
 
-    def forward(self, x):
-        x = self.pre_layers(x)
-        x = self.layer1(x)
-        x = self.layer2(x)
-        x = self.layer3(x)
-        x = self.layer4(x)
-        x = self.avgpool(x)
-        x = x.view(x.size(0), -1)
-        x = self.linear(x)
-        return x
+    def extract_features(self, inputs):
+        out = self.pre_layers(inputs)
+        out = self.layer1(out)
+        out = self.layer2(out)
+        out = self.layer3(out)
+        out = self.layer4(out)
+        out = self.avgpool(out)
+        out = out.view(out.size(0), -1)
+        return out
+
+
+    def forward(self, inputs):
+        out = self.extract_features(inputs)
+        out = self.linear(out)
+        return out
 
 
 def resnet18():
