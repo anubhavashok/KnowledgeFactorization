@@ -116,6 +116,8 @@ def trainTeacherStudent(teacher, student, dataset, epochs=5, lr=0.0005):
     removeLayers(student, type='LogSoftmax')
     removeLayers(student, type='Softmax')
     MSEloss = nn.MSELoss().cuda()
+    #KLDivLoss = nn.KLDivLoss().cuda()
+    CrossEntropyLoss = nn.CrossEntropyLoss().cuda()
     optimizer = optim.SGD(student.parameters(), lr=lr, momentum=0.9, nesterov=True, weight_decay=5e-4)
     student.train()
     for i in range(1, epochs+1):
@@ -124,8 +126,10 @@ def trainTeacherStudent(teacher, student, dataset, epochs=5, lr=0.0005):
             data = Variable(data)
             optimizer.zero_grad()
             studentOutput = student(data)
+            #print studentOutput
             teacherOutput = teacher(data).detach()
             loss = MSEloss(studentOutput, teacherOutput)
+            #loss = CrossEntropyLoss(studentOutput, teacherOutput)
             loss.backward()
             optimizer.step()
         student.add_module('LogSoftmax', nn.LogSoftmax())
